@@ -56,7 +56,7 @@ jobs:
           # Filename of the packaged application to upload and scan.
           file: analysis/verademo.war
           # GITHUB_TOKEN or a repo scoped PAT.
-          token: ${{ github.token }}
+          token: ${{secrets.GH_TOKEN}}
           # Name of the security policy to download as a file. Required only if you want to download the configuration for a custom policy defined by your organization. After downloading the policy, you can provide this file in a subsequent command using the policy_file parameter.
           request_policy: Test
           # Fail the pipeline job if the scan finds flaws of the specified severities. Enter a comma-separated list of severities in quotation marks.
