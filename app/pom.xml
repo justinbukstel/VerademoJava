@@ -135,7 +135,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>verademotest</finalName>
+		<finalName>verademo</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
