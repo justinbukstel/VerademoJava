@@ -26,14 +26,7 @@ jobs:
         run: |
           cd app/
           mvn -B clean package --file pom.xml
-          ls target/
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v2.2.4
-        with:
-          name: verademo-artifact
-          path: app/target/verademo.war
-          if-no-files-found: error
+          chmod +rx app/target/verademo.war
 
   veracode_pipleine_scan:
     runs-on: ubuntu-latest
@@ -42,15 +35,6 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2.0.10
-        with: 
-          name: verademo-artifact
-          path: anlaysis/
-      - run: pwd
-      - run: cd anlaysis
-      - run: ls -la
-      
       - name: Veracode Pipeline-Scan
   # You may pin to the exact commit or the version.
   # uses: veracode/Veracode-pipeline-scan-action@7bbcef3efc8720d36302fc912a7d63f7aba34f76
@@ -61,7 +45,7 @@ jobs:
           # vkey
           vkey: ${{secrets.VERACODE_API_KEY}}
           # Filename of the packaged application to upload and scan.
-          file: verademo.war
+          file: app/target/verademo.war
           # GITHUB_TOKEN or a repo scoped PAT.
           token: ${{secrets.GH_TOKEN}}
           # Name of the security policy to download as a file. Required only if you want to download the configuration for a custom policy defined by your organization. After downloading the policy, you can provide this file in a subsequent command using the policy_file parameter.
