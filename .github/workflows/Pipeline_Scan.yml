@@ -27,7 +27,6 @@ jobs:
           cd app/
           mvn -B clean package --file pom.xml
           chmod +rx target/verademo.war
-          cd /target
           ls -la
 
       - name: Veracode Pipeline-Scan
