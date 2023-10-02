@@ -1,4 +1,4 @@
-name: .5-SAST-Check-Pull-Request-or-Branch
+name: Pipeline Scanner Demo
 
 # This workflow will checkout the code, build the app, and scan with the Veracode Static Pipeline Scanner.
 on:
