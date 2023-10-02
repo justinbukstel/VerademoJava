@@ -1,0 +1,31 @@
+trigger:
+- manual
+
+pool:
+  vmImage: 'ubuntu-latest'
+steps:
+- task: Bash@3
+  displayName: Veracode Container Security
+  
+  inputs:
+    targetType: inline
+    script: |
+      pwd
+      export VERACODE_API_KEY_ID=$(VERACODE_API_KEY_ID)
+      export VERACODE_API_KEY_SECRET=$(VERACODE_API_KEY_SECRET)
+      curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+      ./veracode configure
+      ./veracode scan --source /home/vsts/work/1/s/ --type directory --format json --output ./veracode_container_scan.json
+      export PASSFAIL=$(jq -r '."policy-passed"' veracode_container_scan.json)
+      echo $PASSFAIL
+      if [[ "$PASSFAIL" == "false" ]]; then
+        echo "Container scan failed policy"
+        exit 1
+      fi
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    artifactName: 'veracode_container_scan.json'
+    pathToPublish: '$(System.DefaultWorkingDirectory)/veracode_container_scan.json'
+  displayName: 'Publish veracode_container_scan.json Artifact'
+  condition: always()
