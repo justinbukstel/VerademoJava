@@ -80,7 +80,7 @@ jobs:
           # vkey
           vkey: ${{secrets.VERACODE_API_KEY}}
 
-          deleteincompletescan: true # optional
+          deleteincompletescan: 2 # optional
           # specify version of the Java API Wrapper; default is latest
           #javawrapperversion: # optional
           # show detailed diagnostic information, which you can use for debugging, in the output.
