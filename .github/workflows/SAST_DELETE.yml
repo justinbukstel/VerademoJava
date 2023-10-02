@@ -92,6 +92,7 @@ jobs:
           python-version: 3.8
       - name: Clone HMAC and run script
         run: |
+          cd /tmp
           pip install httpie
           git clone https://github.com/veracode/veracode-python-hmac-example.git
           pip install -r veracode-python-hmac-example/requirements.txt
