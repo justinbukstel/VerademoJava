@@ -1,103 +1,76 @@
-name: Veracode Pipeline Scan Demo
+name: .5-SAST-Check-Pull-Request-or-Branch
 
+# This workflow will checkout the code, build the app, and scan with the Veracode Static Pipeline Scanner.
 on:
-# You can have this on whatever trigger you'd like (i.e. push, pull_request, etc)
+  pull_request:
+    branches: [ main, release/* ]
+ # Enables manual runs
   workflow_dispatch:
+  # Runs "Every at 5:04" (see https://crontab.guru)
+  schedule:
+  - cron: "4 5 * * *"
 
-
-jobs: 
-  build: 
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+jobs:
+  SAST-Check-Pull-Request-or-Branch:
+    runs-on: [ubuntu-latest]
     steps:
-
-    # check out your repo
-      - uses: actions/checkout@v3
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+   
+# Checkout code
+      - uses: actions/checkout@v2
+    
+# Setup Java
+      - uses: actions/setup-java@v1
         with:
-          java-version: '17'
-          distribution: 'adopt'
-
+          java-version: 1.8
+    
+# Build with Maven          
       - name: Build with Maven
+        working-directory: ./app/
+        run: mvn clean install
+    
+# Download Veracode Static Pipeline Scanner     
+      - name: Download Veracode Static Pipeline Scanner
         run: |
-          cd app/
-          mvn -B clean package --file pom.xml
-          chmod +rx target/verademo.war
-          ls -la
-          cd target/
-          ls -la
-
-      - name: Veracode Pipeline-Scan
-  # You may pin to the exact commit or the version.
-  # uses: veracode/Veracode-pipeline-scan-action@7bbcef3efc8720d36302fc912a7d63f7aba34f76
-        uses: veracode/Veracode-pipeline-scan-action@v1.0.8
+          curl https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip -o veracode.zip
+          unzip -o veracode.zip
+      
+      - name: Run Veracode Static Pipeline Scanner
+        continue-on-error: true
+        run: >  
+         echo ${{secrets.VERACODE_API_ID}}
+         
+# In this configuration, the Pipeline scanner will check against the baseline file and see if there are any new flaws compared to the baseline.  If there is, it will break the build.  If not, the build will continue.  
+      - name: Run Veracode Static Pipeline Scanner
+        continue-on-error: true
+        run: >
+         java -jar pipeline-scan.jar --veracode_api_id "${{secrets.VERACODE_API_ID}}" --veracode_api_key "${{secrets.VERACODE_API_KEY}}"
+         --file app/target/verademo.war
+         --summary_output true
+         --baseline_file vc-pipeline-scanner-baseline.json
+         --project_name VeraDemo-Java-GitHub
+      
+      - id: get-comment-body
+        if: ${{ github.head_ref != '' }}
+        run: |
+          body=$(cat results.txt)
+          body="${body//$'===\n---'/'===\n<details><summary>details</summary><p>\n---'}"
+          body="${body//$'---\n\n==='/'---\n</p></details>\n==='}"
+          body="${body//$'\n'/'<br>'}"
+          echo ::set-output name=body::$body
+      - name: Add comment to PR
+        if: ${{ github.head_ref != '' }}
+        uses: peter-evans/create-or-update-comment@v1
         with:
-          # vid
-          vid: ${{secrets.VERACODE_API_ID}}
-          # vkey
-          vkey: ${{secrets.VERACODE_API_KEY}}
-          # Filename of the packaged application to upload and scan.
-          file: verademo.war
-          # GITHUB_TOKEN or a repo scoped PAT.
-          token: ${{secrets.GH_TOKEN}}
-          # Name of the security policy to download as a file. Required only if you want to download the configuration for a custom policy defined by your organization. After downloading the policy, you can provide this file in a subsequent command using the policy_file parameter.
-          request_policy: Test
-          # Fail the pipeline job if the scan finds flaws of the specified severities. Enter a comma-separated list of severities in quotation marks.
-          #fail_on_severity: # optional
-          # Fail the pipeline job if the scan finds flaws of the specified CWEs. Enter a comma-separated list of CWE IDs.
-          #fail_on_cwe: # optional
-          # Filter the flaws that exist in the specified baseline file and show only the additional flaws in the current scan.
-          #baseline_file: # optional
-          # Name of the Veracode default policy rule to apply to the scan results. You can only use this parameter with a Veracode default policy.
-          #policy_name: 
-          # Name of the local policy file you want to apply to the scan results. To download this file, use the --request_policy parameter.
-          policy_file: Test.json
-          # Amount of time, in minutes, for the Pipeline Scan to wait before reporting an unsuccessful scan if the scan does not complete. Default is 60 minutes, which is also the maximum value.
-          #timeout: # optional
-          # Enter true to show detailed messages for each issue in the results summary.
-          issue_details: true
-          # Enter true to show a human-readable results summary on the console. Default is true.
-          #summary_display: # optional
-          # Enter true to show the JSON containing the scan results on the console. Default is false.
-          #json_display: # optional
-          # Enter true to display detailed messages in the scan results. Default is false.
-          #verbose: # optional
-          # Enter true to save the scan results as a human-readable file. Default is false.
-          #summary_output: # optional
-          # Enter the filename of the scan results summary file. The file is stored in the current directory. Default is results.txt.
-          #summary_output_file: # optional
-          # Enter true to save the scan results in JSON format. Default is true.
-          #json_output: # optional
-          # Rename the JSON file that contains the scan results. The file is stored in the current directory. Default filename is results.json.
-          #json_output_file: # optional
-          # Enter the filename in the current directory to save results that violate pass-fail criteria. Default is filtered_results.json.
-          #filtered_json_output_file: # optional
-          # Enter the name of the CI/CD code repository that runs a Pipeline Scan. This parameter adds the repository name to the scan results, which can help you track scans across repositories.
-          #project_name: # optional
-          # Enter the source control URL for the CI/CD code repository that runs a Pipeline Scan.
-          #project_url: # optional
-          # Enter the source control reference, revision, or branch for the CI/CD code repository that runs a Pipeline Scan.
-          #project_ref: # optional
-          # Enter the [application profile](https://docs.veracode.com/r/request_profile) ID for the application you want to upload and scan.
-          #app_id: # optional
-          # Enter one these values, which are case-sensitive, for the type of development stage: Development, Testing, Release.
-          #development_stage: # optional
-          # Enable debug mode. 1 for on
-          #debug: # optional
-          # Enable the storage of a baseline file. Takes true or fales
-          #store_baseline_file: # optional
-          # Enter the branch name where the baseline file should be stored
-          #store_baseline_file_branch: # optional
-          # From which results should the baseline file be created. standard = full results || filtered = filtered results
-          #create_baseline_from: # optional
-          # Fail the build upon findings. Takes true or false
-          fail_build: true
-          # Enter a case-sensitive, comma-separated list of name patterns that represent the names of the modules to scan as top-level modules. Veracode identifies these modules during prescan. The * wildcard matches zero or more characters. The ? wildcard matches exactly one character. For example, to include various module names that contain module: --include "module 1, module-*, module2.jar". The scan results show the names of the modules that Veracode identified and the modules included in the scan. This parameter does not pause, stop, or impact the performance of your pipeline.
-          # include: # optional
-              
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.get-comment-body.outputs.body }}
+          reactions: rocket    
+        
+# Artifact the results for later use
+      - name: Archive Results.json & Results.txt from Veracode Static Pipeline Scanner
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          # Artifact name
+          name: Pipeline Scanner Results
+          path: results.*
           
       
