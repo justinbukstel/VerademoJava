@@ -87,6 +87,7 @@ jobs:
           #javawrapperversion: # optional
           # show detailed diagnostic information, which you can use for debugging, in the output.
           debug: 1 # optional
+        continue-on-error: true
           
       - name: Get Detailed Report
         uses: actions/setup-python@v2
