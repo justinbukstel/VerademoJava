@@ -106,7 +106,7 @@ jobs:
           echo APP ID: ${APP_ID}
           APP_GUID=$(http --auth-type veracode_hmac GET "https://api.veracode.com/appsec/v1/applications/?name=${{ env.APP_NAME }}" | jq -r '._embedded.applications[0].guid')
           echo App GUID: ${APP_GUID}
-          S_ID=$(https://api.veracode.com/appsec/v1/applications/${APP_GUID}/sandboxes/?sort=modified,desc | jq -r '._embedded.sandboxes[0].id')
+          S_ID=$(https://api.veracode.com/appsec/v1/applications/$APP_GUID/sandboxes/?sort=modified,desc | jq -r '._embedded.sandboxes[0].id')
           echo Sandbox ID: ${S_ID}
           BUILD_ID=$(http --auth-type veracode_hmac GET "https://analysiscenter.veracode.com/api/5.0/getbuildinfo.do?app_id=$APP_ID&sandbox_id=$S_ID" | sed -n 's/.*build_id="\([0-9]*\)".*/\1/p')
           echo Build ID: $BUILD_ID
