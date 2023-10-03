@@ -79,6 +79,8 @@ jobs:
           vid: ${{secrets.VERACODE_API_ID}}
           # vkey
           vkey: ${{secrets.VERACODE_API_KEY}}
+          scanpollinginterval: 60
+          scantimeout: 60
 
           deleteincompletescan: 2 # optional
           # specify version of the Java API Wrapper; default is latest
