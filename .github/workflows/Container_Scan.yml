@@ -18,6 +18,7 @@ jobs:
             export VERACODE_API_KEY_SECRET=${{ secrets.VERACODE_API_KEY }}
             curl -fsS https://tools.veracode.com/veracode-cli/install | sh
             ./veracode configure
+            ./veracode scan --srouce /home/runner/work/VerademoJava/VerademoJava --type directory --format table
             ./veracode scan --source /home/runner/work/VerademoJava/VerademoJava --type directory --format json --output ./veracode_container_scan.json
     
       - name: save output file
