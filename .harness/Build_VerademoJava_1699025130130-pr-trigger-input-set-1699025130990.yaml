@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_VerademoJava_1699025130130-pr-trigger-input-set
+  identifier: Build_VerademoJava_1699025130130prtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: Verademo
+  pipeline:
+    identifier: Build_VerademoJava_1699025130130
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
