@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_VerademoJava_1699025130130-push-trigger-input-set
+  identifier: Build_VerademoJava_1699025130130pushtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: Verademo
+  pipeline:
+    identifier: Build_VerademoJava_1699025130130
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
